@@ -1,6 +1,7 @@
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 from datetime import datetime
+from listas import list_uptime_codes, list_uptime_descr
 import openpyxl
 import os
 import csv
@@ -177,7 +178,7 @@ def clasificar_articulos(lista_articulos, instance):
 
     lista_f5 = [p
                 for p in lista_articulos
-                if p.manufacturer == 'F5']
+                if p.manufacturer == 'F5 Networks']
     instance.lista_f5 = lista_f5
 
     lista_cisco = [p
@@ -224,7 +225,7 @@ def diff_days(init_date, end_date):  # Calcula la diferencia en días entre dos 
     return diff.days
 
 
-def hacer_oferta_tech(directorio, instance):
+def hacer_oferta(directorio, instance):
 
     oferta_productos('Checkpoint', instance.lista_checkpoint, instance, directorio)
     oferta_productos('Fortinet', instance.lista_fortinet, instance, directorio)
@@ -261,11 +262,68 @@ def oferta_productos(fabr, lista, instance, directorio):
             hoja['F' + fila] = items.code
             hoja['G' + fila] = items.descripcion_prod
             hoja['K' + fila] = items.unit
-            if items.list_price != 0:
-                hoja['O' + fila] = locale.format('%10.2f', items.list_price)
+            hoja['O' + fila] = locale.format('%10.2f', items.list_price)
             hoja['Q' + fila] = locale.format('%10.2f', items.coste_prod)
             hoja['P' + fila] = locale.format('%10.2f', items.venta_prod)
             hoja['AF' + fila] = items.tech
+
+            if items.maintenance:  # El ítem tiene mantenimiento. Añadir las dos lineas correspondientes
+                fila = str(curr_row + 1)
+                fila_sig = str(curr_row + 2)
+
+                hoja['A' + fila] = num_fila + 1
+                hoja['A' + fila_sig] = num_fila + 2
+                hoja['B' + fila_sig] = num_fila + 1
+                hoja['H' + fila] = 2
+                hoja['H' + fila_sig] = 20
+                hoja['C' + fila] = 'Dimension Data'
+                hoja['C' + fila_sig] = items.manufacturer
+                hoja['E' + fila] = items.unit
+                hoja['E' + fila_sig] = items.unit
+                hoja['F' + fila] = items.sku_uptime
+                hoja['F' + fila_sig] = items.backout_name
+                hoja['G' + fila] = items.descr_uptime
+                hoja['G' + fila_sig] = items.code
+                hoja['I' + fila] = items.code
+                hoja['I' + fila_sig] = 0
+                hoja['J' + fila] = items.manufacturer
+                hoja['J' + fila_sig] = ''
+                hoja['K' + fila] = 1
+                hoja['K' + fila_sig] = 1
+                hoja['L' + fila] = 'EA'
+                hoja['L' + fila_sig] = 'EA'
+                hoja['M' + fila] = 'EUR'
+                hoja['M' + fila_sig] = 'EUR'
+                hoja['N' + fila] = 'Fixed'
+                hoja['N' + fila_sig] = 'Fixed'
+                hoja['O' + fila] = items.list_price_back
+                hoja['O' + fila_sig] = items.list_price_back
+                durac_years = int(round(items.durac/12, 0))
+                hoja['P' + fila] = locale.format('%10.2f', float(items.venta_mant * durac_years))
+                hoja['P' + fila_sig] = locale.format('%10.2f', float(items.venta_mant * durac_years))
+                hoja['Q' + fila] = locale.format('%10.2f', float(items.cost_unit_manten * durac_years))
+                hoja['Q' + fila_sig] = locale.format('%10.2f', float(items.coste_unit_back * durac_years))
+                init_date_formateado = datetime.strptime(items.init_date, "%d/%m/%Y")
+                end_date_formateado = datetime.strptime(items.end_date, "%d/%m/%Y")
+                fecha_init = '{}/{}/{}'.format(init_date_formateado.day, init_date_formateado.month,
+                                               init_date_formateado.year)
+                fecha_init_limpia = '{}{}{}'.format(str(init_date_formateado.year),
+                                                    str(init_date_formateado.month).zfill(2),
+                                                    str(init_date_formateado.day).zfill(2))
+                fecha_fin = '{}/{}/{}'.format(end_date_formateado.day, end_date_formateado.month,
+                                              end_date_formateado.year)
+                hoja['X' + fila] = fecha_init
+                hoja['X' + fila_sig] = fecha_init
+                hoja['Y' + fila] = fecha_fin
+                hoja['Y' + fila_sig] = fecha_fin
+                hoja['AA' + fila] = ('StartDate=' + fecha_init_limpia + '#Duration=' + str(items.durac) +
+                                     '#InvoiceInterval=Yearly#InvoiceMode=anticipated')
+                hoja['AA' + fila_sig] = ('StartDate=' + fecha_init_limpia + '#Duration=' + str(items.durac) +
+                                         '#InvoiceInterval=Yearly#InvoiceMode=anticipated')
+
+                hoja['AF' + fila] = items.tech
+                hoja['AF' + fila_sig] = items.tech
+                curr_row += 2
 
             curr_row += 1
             num_fila += 10
@@ -294,34 +352,26 @@ def oferta_productos(fabr, lista, instance, directorio):
         return
 
 
-def convert_sla(text:str):   # Este método convierte las descripciones de Uptime en códigos de servicio
-    if text.startswith('Uptime'):
-        text = text.replace('Uptime', 'DDMS-UPTM-')
-        text = text.replace(' ', '')
-        return text
+def convert_sla(text:str, instance):   # Este método convierte las descripciones de Uptime en códigos de servicio
 
-    elif text.startswith('MAINTAIN'):
-        text = text.replace('MAINTAIN', 'DDMS-EUMMG-')
-        text = text.replace(' ', '')
-        return  text
-    else:
-        return None
+    sla_code = instance.dict_sla.get(text, None)  # De este diccionario sacamos la equivalencia descrip --> código
+    return sla_code
 
 
-def hacer_oferta_ms(lista_articulos, directorio, instance):
-
-    # En primer lugar filtramos los registros que incluyen mantenimiento
-
-    lista_ms = [item
-                for item in lista_articulos
-                if item.maintenance]
-
-    excel_aux = pass_to_excel(lista_ms, instance)
-    fichero_excel_out = os.path.join(directorio, 'ms.xlsx')
-    fichero_csv_out = os.path.join(directorio, 'ms.csv')
-
-    if excel_aux:
-
-        excel_aux.save(fichero_excel_out)
-        csv_from_excel(fichero_excel_out, fichero_csv_out, instance)
-        os.remove(fichero_excel_out)
+# def hacer_oferta_ms(lista_articulos, directorio, instance):
+#
+#     # En primer lugar filtramos los registros que incluyen mantenimiento
+#
+#     lista_ms = [item
+#                 for item in lista_articulos
+#                 if item.maintenance]
+#
+#     excel_aux = pass_to_excel(lista_ms, instance)
+#     fichero_excel_out = os.path.join(directorio, 'ms.xlsx')
+#     fichero_csv_out = os.path.join(directorio, 'ms.csv')
+#
+#     if excel_aux:
+#
+#         excel_aux.save(fichero_excel_out)
+#         csv_from_excel(fichero_excel_out, fichero_csv_out, instance)
+#         os.remove(fichero_excel_out)

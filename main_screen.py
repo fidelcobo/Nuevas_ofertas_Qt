@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\main_screen.ui'
+# Form implementation generated from reading ui file 'main_screen.ui'
 #
 # Created by: PyQt5 UI code generator 5.9
 #
@@ -12,11 +12,14 @@ class Ui_Oferta_Manual(object):
     def setupUi(self, Oferta_Manual):
         Oferta_Manual.setObjectName("Oferta_Manual")
         Oferta_Manual.resize(428, 350)
+        Oferta_Manual.setMinimumSize(QtCore.QSize(428, 350))
+        Oferta_Manual.setMaximumSize(QtCore.QSize(428, 350))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/Alien.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Oferta_Manual.setWindowIcon(icon)
         Oferta_Manual.setStyleSheet("QDialog{\n"
 "    background-color: qconicalgradient(cx:0.8125, cy:0.761, angle:0, stop:0 rgba(191, 218, 15, 255), stop:0.16 rgba(136, 106, 22, 255), stop:0.225 rgba(166, 140, 41, 255), stop:0.285 rgba(204, 181, 74, 255), stop:0.345 rgba(235, 219, 102, 255), stop:0.415 rgba(245, 236, 112, 255), stop:0.52 rgba(209, 190, 76, 255), stop:0.57 rgba(187, 156, 51, 255), stop:0.635 rgba(168, 142, 42, 255), stop:0.695 rgba(202, 174, 68, 255), stop:0.75 rgba(218, 202, 86, 255), stop:0.815 rgba(208, 187, 73, 255), stop:0.88 rgba(187, 156, 51, 255), stop:0.935 rgba(137, 108, 26, 255), stop:1 rgba(35, 40, 3, 255));}")
+        Oferta_Manual.setSizeGripEnabled(True)
         self.manufacturer = QtWidgets.QComboBox(Oferta_Manual)
         self.manufacturer.setGeometry(QtCore.QRect(40, 80, 191, 21))
         self.manufacturer.setObjectName("manufacturer")

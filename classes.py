@@ -2,7 +2,8 @@
 from PyQt5 import QtWidgets
 from main_screen import Ui_Oferta_Manual
 from maint_screen import Ui_maintenance_Dialog
-from procedures import convert_sla, diff_days, clasificar_articulos, hacer_oferta_ms, hacer_oferta_tech
+from procedures import convert_sla, diff_days, clasificar_articulos, hacer_oferta
+from listas import list_uptime_descr, list_manufacturer, list_tech, list_uptime_codes
 import locale
 
 locale.setlocale(locale.LC_ALL, 'FR')
@@ -81,11 +82,7 @@ class Datos_Mantenimiento(QtWidgets.QDialog, Ui_maintenance_Dialog):
         # self.pvp = ''
         self.lista_precios = []
 
-        list_upt = ['Uptime Reconfigure Response 24x7x4', 'Uptime Reconfigure Response BusHrsxNBD',
-                    'Uptime Ship Response 24x7x4', 'Uptime Ship Response BusHrsxNBD', 'MAINTAIN Reconfigure Response 24x7x4',
-                    'MAINTAIN Reconfigure Response BusHrsxNBD', 'MAINTAIN Ship Response 24x7x4',
-                    'MAINTAIN Ship Response BusHrsxNBD']
-        self.sla_uptime.addItems(list_upt)
+        self.sla_uptime.addItems(list_uptime_descr)  # Rellenamos lista desplegable de SLAs
 
         self.ok_button.clicked.connect(self.process_data)
         self.clear_button.clicked.connect(self.exit_no_maintenance)
@@ -167,13 +164,11 @@ class Oferta(QtWidgets.QDialog, Ui_Oferta_Manual):
         self.lista_bluecoat = []
         self.lista_brocade = []
 
-        list_manuf = ['CISCO', 'Alcatel', 'HP', 'Checkpoint', 'Riverbed', 'Fortinet', 'Palo Alto Networks',
-                      'F5', 'Juniper', 'Bluecoat', 'Brocade']
-        list_tech = ['NI', 'CC']
         self.lista_articulos = []
 
-        self.manufacturer.addItems(list_manuf)
+        self.manufacturer.addItems(list_manufacturer)
         self.tech.addItems(list_tech)
+        self.dict_sla = dict((x,y) for (x, y) in zip(list_uptime_descr, list_uptime_codes))
 
         self.add_button.clicked.connect(self.add_item)
         self.add_finish_button.clicked.connect(self.complete_offer)
@@ -194,7 +189,7 @@ class Oferta(QtWidgets.QDialog, Ui_Oferta_Manual):
         sku_uptime, descr_uptime, backout_name, descr_backout = '', '', '', ''
         init_date, end_date = '', ''
         list_price_back, coste_unit_back, uplift, cost_unit_manten, margen_maint, \
-        venta_mant, durac = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0
+        venta_mant, durac_months = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0
 
         if not code:  # El campo de código es obligatorio
             QtWidgets.QMessageBox.critical(self, 'Error', 'El campo de código\n no puede estar vacío')
@@ -219,6 +214,8 @@ class Oferta(QtWidgets.QDialog, Ui_Oferta_Manual):
                     ok = prod.lista_precios[0][0]  # Es una lista que consta de un sólo elemento tipo lista
                     if ok:  # Los datos de mantenimiento son coherentes
                         list_price_back = prod.lista_precios[0][1]
+                        if not list_price_back:
+                            list_price_back = 0
                         coste_unit_back = prod.lista_precios[0][2]
                         margen_maint = prod.lista_precios[0][3]
                         uplift = prod.lista_precios[0][4]
@@ -227,17 +224,17 @@ class Oferta(QtWidgets.QDialog, Ui_Oferta_Manual):
                         backout_name = prod.back_code.text()
                         descr_backout = prod.back_descr.text()
                         descr_uptime = prod.sla_uptime.currentText()
-                        sku_uptime = convert_sla(prod.sla_uptime.currentText())
+                        sku_uptime = convert_sla(prod.sla_uptime.currentText(), self)
                         init_date = prod.start_date.text()
                         end_date = prod.end_date.text()
-                        durac = int(round(12*diff_days(init_date, end_date)/365, 0))
-                        print(type(durac), durac)
+                        durac_months = int(round(12 * diff_days(init_date, end_date) / 365, 0))
+                        print(type(durac_months), durac_months)
                     else:
                         maintenance = False  # No hay datos de mantenimiento buenos
                 except IndexError:
                     QtWidgets.QMessageBox.warning(self, 'Aviso', 'Los datos de mantenimiento del último producto\n no se incluirán en la oferta')
 
-            self.lista_articulos.append(Articulo(qty, tech, manuf, code, description, list_price, cost, margin, maintenance, init_date, end_date, durac,
+            self.lista_articulos.append(Articulo(qty, tech, manuf, code, description, list_price, cost, margin, maintenance, init_date, end_date, durac_months,
                                                  sku_uptime, descr_uptime, backout_name, descr_backout, list_price_back, coste_unit_back, uplift,
                                                  cost_unit_manten, margen_maint, venta_mant))
             print(len(self.lista_articulos))
@@ -247,8 +244,8 @@ class Oferta(QtWidgets.QDialog, Ui_Oferta_Manual):
 
         clasificar_articulos(self.lista_articulos, self)
         destination_folder = QtWidgets.QFileDialog.getExistingDirectory(self, "Elegir carpeta de destino")
-        hacer_oferta_tech(destination_folder, self)
-        hacer_oferta_ms(self.lista_articulos, destination_folder, self)
+        hacer_oferta(destination_folder, self)
+        # hacer_oferta_ms(self.lista_articulos, destination_folder, self)
         QtWidgets.QMessageBox.information(self, 'OK',
                                           'Todo parece haber ido bien')
 
@@ -302,13 +299,3 @@ class Oferta(QtWidgets.QDialog, Ui_Oferta_Manual):
             return(False, list_price, cost, margin, qty)
 
         return (True, list_price, cost, margin, qty)   # Los valores son correctos
-
-
-def main():
-
-   text = 'Uptime Reconfigure Result 24x7x2'
-   x = convert_sla(text)
-   print(x)
-
-if __name__ == '__main__':
-    main()
