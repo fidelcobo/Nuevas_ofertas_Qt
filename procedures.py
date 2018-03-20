@@ -1,7 +1,7 @@
 
-from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5 import QtWidgets
 from datetime import datetime
-from listas import list_uptime_codes, list_uptime_descr
+# from listas import list_uptime_codes, list_uptime_descr
 import openpyxl
 import os
 import csv
@@ -80,8 +80,8 @@ def pass_to_excel(lista: [], instance):
     actual_dir = os.path.dirname(__file__)
 
     # Ahora abrimos el fichero Excel auxiliar de plantilla de MS
-    filen = os.path.join(actual_dir, 'plantilla_ms.xlsx')  # Este fichero no se toca. Hace de plantilla
-    sheet_name = 'ms'
+    filen = os.path.join(actual_dir, 'plantilla.xlsx')  # Este fichero no se toca. Hace de plantilla
+    # sheet_name = 'ms'
     if not os.path.exists(filen):
         instance.QtWidgets.QMessageBox.critical(instance, 'Procesado de oferta',
                                                 'El fichero {} no se encuentra\n'.format(filen))
@@ -89,7 +89,7 @@ def pass_to_excel(lista: [], instance):
 
     try:
         libro = openpyxl.load_workbook(filen)
-        hoja = libro.get_sheet_by_name(sheet_name)
+        hoja = libro.get_active_sheet()
 
     except PermissionError:
         instance.QtWidgets.QMessageBox.critical(instance, 'Procesado de oferta',
@@ -246,10 +246,10 @@ def oferta_productos(fabr, lista, instance, directorio):
         curr_row = 2
         num_fila = 10
         actual_dir = os.path.dirname(__file__)
-        filen = os.path.join(actual_dir, 'plantilla_prod.xlsx')  # Este fichero no se toca. Hace de plantilla
-        sheet_name = 'BOM'
+        filen = os.path.join(actual_dir, 'plantilla.xlsx')  # Este fichero no se toca. Hace de plantilla
+        # sheet_name = 'BOM'
         libro = openpyxl.load_workbook(filen)
-        hoja = libro.get_sheet_by_name(sheet_name)
+        hoja = libro.get_active_sheet()
 
         for items in lista:
             fila = str(curr_row)
