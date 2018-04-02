@@ -1,7 +1,7 @@
 
 from PyQt5 import QtWidgets
 from datetime import datetime
-# from listas import list_uptime_codes, list_uptime_descr
+from listas import list_manufacturer
 import openpyxl
 import os
 import csv
@@ -158,64 +158,78 @@ def pass_to_excel(lista: [], instance):
 
     return libro
 
+def fill_offer(lista_articulos, carpeta, instance):
 
-def clasificar_articulos(lista_articulos, instance):
+    """
+    :param lista_arrticulos:
+    :param carpeta:
+    :param instance:
+    :return: No devuelve valores, sino que compone los csv de la oferta
+    Este procedimiento clasifica los artículos por fabricante y compone los ficheros csv de salida
+    """
+    for fabr in list_manufacturer:
+        lista_fabr =  [p
+                       for p in lista_articulos
+                       if p.manufacturer == fabr]
+        hacer_oferta_csv(fabr, lista_fabr, instance, carpeta)
 
-    lista_checkpoint = [p
-                        for p in lista_articulos
-                        if p.manufacturer == 'Checkpoint']
-    instance.lista_checkpoint = lista_checkpoint
 
-    lista_fortinet = [p
-                      for p in lista_articulos
-                      if p.manufacturer == 'Fortinet']
-    instance.lista_fortinet = lista_fortinet
-
-    lista_hp = [p
-                for p in lista_articulos
-                if p.manufacturer == 'HP']
-    instance.lista_hp = lista_hp
-
-    lista_f5 = [p
-                for p in lista_articulos
-                if p.manufacturer == 'F5 Networks']
-    instance.lista_f5 = lista_f5
-
-    lista_cisco = [p
-                   for p in lista_articulos
-                   if p.manufacturer == 'CISCO']
-    instance.lista_cisco = lista_cisco
-
-    lista_alcatel = [p
-                     for p in lista_articulos
-                     if p.manufacturer == 'Alcatel']
-    instance.lista_alcatel = lista_alcatel
-
-    lista_riverbed = [p
-                      for p in lista_articulos
-                      if p.manufacturer == 'Riverbed']
-    instance.lista_riverbed = lista_riverbed
-
-    lista_paloalto = [p
-                      for p in lista_articulos
-                      if p.manufacturer == 'Palo Alto Networks']
-    instance.lista_paloalto = lista_paloalto
-
-    lista_juniper = [p
-                     for p in lista_articulos
-                     if p.manufacturer == 'Juniper']
-    instance.lista_juniper = lista_juniper
-
-    lista_bluecoat = [p
-                      for p in lista_articulos
-                      if p.manufacturer == 'Bluecoat']
-    instance.lista_bluecoat = lista_bluecoat
-
-    lista_brocade = [p
-                     for p in lista_articulos
-                     if p.manufacturer == 'Brocade']
-    instance.lista_brocade = lista_brocade
-
+# def clasificar_articulos(lista_articulos, instance):
+#
+#     lista_checkpoint = [p
+#                         for p in lista_articulos
+#                         if p.manufacturer == 'Checkpoint']
+#     instance.lista_checkpoint = lista_checkpoint
+#
+#     lista_fortinet = [p
+#                       for p in lista_articulos
+#                       if p.manufacturer == 'Fortinet']
+#     instance.lista_fortinet = lista_fortinet
+#
+#     lista_hp = [p
+#                 for p in lista_articulos
+#                 if p.manufacturer == 'HP']
+#     instance.lista_hp = lista_hp
+#
+#     lista_f5 = [p
+#                 for p in lista_articulos
+#                 if p.manufacturer == 'F5 Networks']
+#     instance.lista_f5 = lista_f5
+#
+#     lista_cisco = [p
+#                    for p in lista_articulos
+#                    if p.manufacturer == 'CISCO']
+#     instance.lista_cisco = lista_cisco
+#
+#     lista_alcatel = [p
+#                      for p in lista_articulos
+#                      if p.manufacturer == 'Alcatel']
+#     instance.lista_alcatel = lista_alcatel
+#
+#     lista_riverbed = [p
+#                       for p in lista_articulos
+#                       if p.manufacturer == 'Riverbed']
+#     instance.lista_riverbed = lista_riverbed
+#
+#     lista_paloalto = [p
+#                       for p in lista_articulos
+#                       if p.manufacturer == 'Palo Alto Networks']
+#     instance.lista_paloalto = lista_paloalto
+#
+#     lista_juniper = [p
+#                      for p in lista_articulos
+#                      if p.manufacturer == 'Juniper']
+#     instance.lista_juniper = lista_juniper
+#
+#     lista_bluecoat = [p
+#                       for p in lista_articulos
+#                       if p.manufacturer == 'Bluecoat']
+#     instance.lista_bluecoat = lista_bluecoat
+#
+#     lista_brocade = [p
+#                      for p in lista_articulos
+#                      if p.manufacturer == 'Brocade']
+#     instance.lista_brocade = lista_brocade
 
 def diff_days(init_date, end_date):  # Calcula la diferencia en días entre dos fechas dadas en formato string AA/MM/DD
 
@@ -224,23 +238,22 @@ def diff_days(init_date, end_date):  # Calcula la diferencia en días entre dos 
     diff = end_date - init_date
     return diff.days
 
+# def hacer_oferta(directorio, instance):
+#
+#     oferta_productos('Checkpoint', instance.lista_checkpoint, instance, directorio)
+#     oferta_productos('Fortinet', instance.lista_fortinet, instance, directorio)
+#     oferta_productos('F5', instance.lista_f5, instance, directorio)
+#     oferta_productos('HP', instance.lista_hp, instance, directorio)
+#     oferta_productos('Riverbed', instance.lista_riverbed, instance, directorio)
+#     oferta_productos('Palo Alto Networks', instance.lista_paloalto, instance, directorio)
+#     oferta_productos('Brocade', instance.lista_brocade, instance, directorio)
+#     oferta_productos('Juniper', instance.lista_juniper, instance, directorio)
+#     oferta_productos('Bluecoat', instance.lista_bluecoat, instance, directorio)
+#     oferta_productos('Alcatel', instance.lista_alcatel, instance, directorio)
+#     oferta_productos('CISCO', instance.lista_cisco, instance, directorio)
 
-def hacer_oferta(directorio, instance):
 
-    oferta_productos('Checkpoint', instance.lista_checkpoint, instance, directorio)
-    oferta_productos('Fortinet', instance.lista_fortinet, instance, directorio)
-    oferta_productos('F5', instance.lista_f5, instance, directorio)
-    oferta_productos('HP', instance.lista_hp, instance, directorio)
-    oferta_productos('Riverbed', instance.lista_riverbed, instance, directorio)
-    oferta_productos('Palo Alto Networks', instance.lista_paloalto, instance, directorio)
-    oferta_productos('Brocade', instance.lista_brocade, instance, directorio)
-    oferta_productos('Juniper', instance.lista_juniper, instance, directorio)
-    oferta_productos('Bluecoat', instance.lista_bluecoat, instance, directorio)
-    oferta_productos('Alcatel', instance.lista_alcatel, instance, directorio)
-    oferta_productos('CISCO', instance.lista_cisco, instance, directorio)
-
-
-def oferta_productos(fabr, lista, instance, directorio):
+def hacer_oferta_csv(fabr, lista, instance, directorio):
 
     if lista:
         curr_row = 2

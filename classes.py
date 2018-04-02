@@ -2,7 +2,7 @@
 from PyQt5 import QtWidgets
 from main_screen import Ui_Oferta_Manual
 from maint_screen import Ui_maintenance_Dialog
-from procedures import convert_sla, diff_days, clasificar_articulos, hacer_oferta
+from procedures import convert_sla, diff_days, fill_offer
 from listas import list_uptime_descr, list_manufacturer, list_tech, list_uptime_codes
 import locale
 
@@ -152,17 +152,17 @@ class Oferta(QtWidgets.QDialog, Ui_Oferta_Manual):
         super(self.__class__, self).__init__()
         self.setupUi(self)
 
-        self.lista_checkpoint = []
-        self.lista_fortinet = []
-        self.lista_hp = []
-        self.lista_riverbed = []
-        self.lista_f5 = []
-        self.lista_cisco = []
-        self.lista_alcatel = []
-        self.lista_paloalto = []
-        self.lista_juniper = []
-        self.lista_bluecoat = []
-        self.lista_brocade = []
+        # self.lista_checkpoint = []
+        # self.lista_fortinet = []
+        # self.lista_hp = []
+        # self.lista_riverbed = []
+        # self.lista_f5 = []
+        # self.lista_cisco = []
+        # self.lista_alcatel = []
+        # self.lista_paloalto = []
+        # self.lista_juniper = []
+        # self.lista_bluecoat = []
+        # self.lista_brocade = []
 
         self.lista_articulos = []
 
@@ -242,9 +242,9 @@ class Oferta(QtWidgets.QDialog, Ui_Oferta_Manual):
 
     def complete_offer(self):
 
-        clasificar_articulos(self.lista_articulos, self)
+        # clasificar_articulos(self.lista_articulos, self)
         destination_folder = QtWidgets.QFileDialog.getExistingDirectory(self, "Elegir carpeta de destino")
-        hacer_oferta(destination_folder, self)
+        fill_offer(self.lista_articulos, destination_folder, self)  # Clasifica por fabricantes y hace el csv
         # hacer_oferta_ms(self.lista_articulos, destination_folder, self)
         QtWidgets.QMessageBox.information(self, 'OK',
                                           'Todo parece haber ido bien')
